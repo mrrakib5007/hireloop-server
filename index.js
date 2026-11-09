@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 dotenv.config();
 
 const app = express();
@@ -37,11 +37,61 @@ app.get("/users", async (req, res) => {
   res.send(users);
 });
 
+
+app.get("/jobs", async (req, res) => {
+  const jobs = await jobsCollection.find({}).sort({ _id: -1 }).toArray();
+  res.send(jobs);
+});
+
 app.post("/add-job", async (req, res) => {
-  const job = req.body;
+  const job = {
+    ...req.body,
+    createdAt: req.body.createdAt || new Date().toISOString(),
+  };
   const result = await jobsCollection.insertOne(job);
   res.send(result);
 });
+
+app.get("/jobs/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const query = { _id: new ObjectId(id) };
+    const job = await jobsCollection.findOne(query);
+    if (!job) {
+      return res.status(404).send({ error: "Job not found" });
+    }
+    res.send(job);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+app.put("/jobs/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const query = { _id: new ObjectId(id) };
+    const updatedData = { ...req.body };
+    delete updatedData._id;
+    const result = await jobsCollection.updateOne(query, { $set: updatedData });
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+app.delete("/jobs/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const query = { _id: new ObjectId(id) };
+    const result = await jobsCollection.deleteOne(query);
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+
+
 
 
 
