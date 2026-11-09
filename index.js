@@ -24,18 +24,40 @@ export async function connectToMongoDB() {
 
 const mongoClient = await connectToMongoDB();
 const db = mongoClient.db("hireloop_db");
-const usersCollection = db.collection("users");
+const usersCollection = db.collection("user");
+const jobsCollection = db.collection("jobs");
 
 // health check route
 app.get("/", (req, res) => {
   res.send("HireLoop Server is running");
 });
 
+app.get("/users", async (req, res) => {
+  const users = await usersCollection.find({}).toArray();
+  res.send(users);
+});
+
+app.post("/add-job", async (req, res) => {
+  const job = req.body;
+  const result = await jobsCollection.insertOne(job);
+  res.send(result);
+});
+
+
+
+
 
 if (process.env.NODE_ENV === "production") {  
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-})}
+  app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+  })
+}
+
+if (process.env.NODE_ENV === "development") {
+  app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+  })
+}
 
 export default app;
 
