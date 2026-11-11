@@ -55,6 +55,9 @@ app.post("/add-job", async (req, res) => {
 app.get("/jobs/:id", async (req, res) => {
   const { id } = req.params;
   try {
+    if (!ObjectId.isValid(id)) {
+      return res.status(404).send({ error: "Invalid job ID" });
+    }
     const query = { _id: new ObjectId(id) };
     const job = await jobsCollection.findOne(query);
     if (!job) {
@@ -62,13 +65,16 @@ app.get("/jobs/:id", async (req, res) => {
     }
     res.send(job);
   } catch (error) {
-    res.status(500).send({ error: error.message });
+    res.status(404).send({ error: error.message });
   }
 });
 
 app.put("/jobs/:id", async (req, res) => {
   const { id } = req.params;
   try {
+    if (!ObjectId.isValid(id)) {
+      return res.status(404).send({ error: "Invalid job ID" });
+    }
     const query = { _id: new ObjectId(id) };
     const updatedData = { ...req.body };
     delete updatedData._id;
@@ -82,6 +88,9 @@ app.put("/jobs/:id", async (req, res) => {
 app.delete("/jobs/:id", async (req, res) => {
   const { id } = req.params;
   try {
+    if (!ObjectId.isValid(id)) {
+      return res.status(404).send({ error: "Invalid job ID" });
+    }
     const query = { _id: new ObjectId(id) };
     const result = await jobsCollection.deleteOne(query);
     res.send(result);
